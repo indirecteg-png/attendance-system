@@ -1,0 +1,238 @@
+/* Custom Styles for Attendance System */
+
+/* RTL Support */
+[dir="rtl"] .text-right {
+    text-align: right;
+}
+
+[dir="rtl"] .text-left {
+    text-align: left;
+}
+
+[dir="rtl"] .ml-2 {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+[dir="rtl"] .mr-2 {
+    margin-right: 0;
+    margin-left: 0.5rem;
+}
+
+[dir="rtl"] .pl-10 {
+    padding-left: 0;
+    padding-right: 2.5rem;
+}
+
+[dir="rtl"] .pr-10 {
+    padding-right: 0;
+    padding-left: 2.5rem;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.status-present {
+    background-color: #10b981;
+    color: white;
+}
+
+.status-absent {
+    background-color: #ef4444;
+    color: white;
+}
+
+.status-break {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.status-late {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+/* Navigation Active State */
+.nav-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+/* Table Styles */
+.table-auto {
+    border-collapse: collapse;
+}
+
+.table-auto th,
+.table-auto td {
+    border: 1px solid #e5e7eb;
+}
+
+.table-auto th {
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-input {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Button Hover Effects */
+.btn-hover {
+    transition: all 0.2s ease;
+}
+
+.btn-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Styles */
+.card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Message Styles */
+.message {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.message-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.message-error {
+    background-color: #ef4444;
+    color: white;
+}
+
+.message-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.message-info {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 2px solid #f3f4f6;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .grid-cols-3 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-only {
+        display: block !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+    
+    .dark-mode .bg-white {
+        background-color: #374151 !important;
+    }
+    
+    .dark-mode .text-gray-800 {
+        color: #f9fafb !important;
+    }
+    
+    .dark-mode .text-gray-600 {
+        color: #d1d5db !important;
+    }
+}
