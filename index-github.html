@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الحضور والانصراف - نسخة بسيطة</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <img src="https://via.placeholder.com/80x80/3b82f6/ffffff?text=LOGO" alt="شعار الشركة" class="w-20 h-20 mx-auto mb-4 rounded-full">
+                <h1 class="text-2xl font-bold text-gray-800">نظام الحضور والانصراف</h1>
+                <p class="text-gray-600">نسخة محلية بسيطة</p>
+            </div>
+            
+            <form id="loginForm" onsubmit="return login(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-bold mb-2">اسم المستخدم:</label>
+                    <div class="relative">
+                        <input type="text" id="username" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-bold mb-2">كلمة المرور:</label>
+                    <div class="relative">
+                        <input type="password" id="password" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                    تسجيل الدخول
+                </button>
+            </form>
+            
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold text-blue-800 mb-2">بيانات الدخول الافتراضية:</h3>
+                <p class="text-sm text-blue-700">اسم المستخدم: admin</p>
+                <p class="text-sm text-blue-700">كلمة المرور: 123456</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-md">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <img src="https://via.placeholder.com/50x50/3b82f6/ffffff?text=LOGO" alt="شعار الشركة" class="w-12 h-12 ml-3 rounded">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800">شركة الحلول التقنية</h1>
+                            <p class="text-sm text-gray-600">نظام إدارة الحضور والانصراف</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-reverse space-x-4">
+                        <div class="text-left">
+                            <p class="text-sm text-gray-600">المستخدم:</p>
+                            <p id="currentUser" class="font-semibold text-gray-800">مدير النظام</p>
+                        </div>
+                        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                            <i class="fas fa-sign-out-alt ml-2"></i>
+                            تسجيل الخروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-gray-800 text-white">
+            <div class="container mx-auto px-4">
+                <div class="flex space-x-reverse space-x-1 overflow-x-auto">
+                    <button onclick="showSection('attendance')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-clock ml-2"></i>
+                        الحضور والانصراف
+                    </button>
+                    <button onclick="showSection('employees')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-users ml-2"></i>
+                        الموظفين
+                    </button>
+                    <button onclick="showSection('data')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-database ml-2"></i>
+                        إدارة البيانات
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Attendance Section -->
+            <section id="attendance-section" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-clock ml-2 text-blue-500"></i>
+                        تسجيل الحضور والانصراف
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">اختر الموظف:</label>
+                            <select id="employeeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">-- اختر موظف --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-end">
+                            <button onclick="checkIn()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-sign-in-alt ml-2"></i>
+                                حضور
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-end">
+                            <button onclick="checkOut()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-sign-out-alt ml-2"></i>
+                                انصراف
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-end">
+                            <button onclick="takeBreak()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-coffee ml-2"></i>
+                                استراحة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Today's Attendance Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-right">اسم الموظف</th>
+                                    <th class="px-4 py-2 text-right">القسم</th>
+                                    <th class="px-4 py-2 text-right">الحضور</th>
+                                    <th class="px-4 py-2 text-right">الانصراف</th>
+                                    <th class="px-4 py-2 text-right">استراحة</th>
+                                    <th class="px-4 py-2 text-right">ساعات العمل</th>
+                                    <th class="px-4 py-2 text-right">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-gray-500">لا توجد سجلات حضور اليوم</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employees Section -->
+            <section id="employees-section" class="section hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-users ml-2 text-blue-500"></i>
+                        إدارة الموظفين
+                    </h2>
+                    
+                    <div class="mb-6">
+                        <button onclick="showEmployeeForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                            <i class="fas fa-plus ml-2"></i>
+                            إضافة موظف جديد
+                        </button>
+                    </div>
+                    
+                    <!-- Employee Form -->
+                    <div id="employeeForm" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-bold text-gray-800 mb-4">بيانات الموظف</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">الاسم:</label>
+                                <input type="text" id="employeeName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">الرقم الوظيفي:</label>
+                                <input type="text" id="employeeId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">القسم:</label>
+                                <select id="employeeDepartment" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="الإدارة">الإدارة</option>
+                                    <option value="قسم التصميم">قسم التصميم</option>
+                                    <option value="قسم الموارد البشرية">قسم الموارد البشرية</option>
+                                    <option value="أقسام أخرى">أقسام أخرى</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">البريد الإلكتروني:</label>
+                                <input type="email" id="employeeEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex space-x-reverse space-x-2">
+                            <button onclick="saveEmployee()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-save ml-2"></i>
+                                حفظ
+                            </button>
+                            <button onclick="hideEmployeeForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-times ml-2"></i>
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Employees Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-right">الاسم</th>
+                                    <th class="px-4 py-2 text-right">الرقم الوظيفي</th>
+                                    <th class="px-4 py-2 text-right">القسم</th>
+                                    <th class="px-4 py-2 text-right">البريد الإلكتروني</th>
+                                    <th class="px-4 py-2 text-right">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-gray-500">لا يوجد موظفين</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Management Section -->
+            <section id="data-section" class="section hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-database ml-2 text-blue-500"></i>
+                        إدارة البيانات
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h3 class="font-bold text-blue-800 mb-4">
+                                <i class="fas fa-download ml-2"></i>
+                                تصدير البيانات
+                            </h3>
+                            <p class="text-blue-700 text-sm mb-4">تصدير جميع البيانات كملف JSON</p>
+                            <button onclick="exportData()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-download ml-2"></i>
+                                تصدير
+                            </button>
+                        </div>
+                        
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h3 class="font-bold text-green-800 mb-4">
+                                <i class="fas fa-upload ml-2"></i>
+                                استيراد البيانات
+                            </h3>
+                            <p class="text-green-700 text-sm mb-4">استيراد البيانات من ملف JSON</p>
+                            <input type="file" id="importFile" accept=".json" class="w-full mb-2">
+                            <button onclick="importData()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-upload ml-2"></i>
+                                استيراد
+                            </button>
+                        </div>
+                        
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <h3 class="font-bold text-red-800 mb-4">
+                                <i class="fas fa-trash ml-2"></i>
+                                مسح جميع البيانات
+                            </h3>
+                            <p class="text-red-700 text-sm mb-4">حذف جميع البيانات والبدء من جديد</p>
+                            <button onclick="clearAllData()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-trash ml-2"></i>
+                                مسح
+                            </button>
+                        </div>
+                        
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <h3 class="font-bold text-purple-800 mb-4">
+                                <i class="fas fa-info-circle ml-2"></i>
+                                معلومات
+                            </h3>
+                            <p class="text-purple-700 text-sm">هذه النسخة تعمل محلياً على جهازك. يمكنك تصدير البيانات ونقلها إلى جهاز آخر.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <script src="script-simple.js"></script>
+</body>
+</html>
