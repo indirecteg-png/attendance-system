@@ -63,7 +63,6 @@
                     </div>
                     <div class="flex items-center space-x-reverse space-x-4">
                         <div class="text-left">
-                            <p class="text-sm text-gray-600">المستخدم:</p>
                             <p id="currentUser" class="font-semibold text-gray-800">مدير النظام</p>
                         </div>
                         <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
@@ -86,6 +85,18 @@
                     <button onclick="showSection('employees')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
                         <i class="fas fa-users ml-2"></i>
                         الموظفين
+                    </button>
+                    <button onclick="showSection('work-assignments')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-tasks ml-2"></i>
+                        أوامر العمل
+                    </button>
+                    <button onclick="showSection('permissions')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-shield-alt ml-2"></i>
+                        الصلاحيات
+                    </button>
+                    <button onclick="showSection('settings')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
+                        <i class="fas fa-cog ml-2"></i>
+                        الإعدادات
                     </button>
                     <button onclick="showSection('data')" class="nav-btn px-4 py-3 hover:bg-gray-700 transition duration-200 whitespace-nowrap">
                         <i class="fas fa-database ml-2"></i>
@@ -286,6 +297,237 @@
                                 معلومات
                             </h3>
                             <p class="text-purple-700 text-sm">هذه النسخة تعمل محلياً على جهازك. يمكنك تصدير البيانات ونقلها إلى جهاز آخر.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Work Assignments Section -->
+            <section id="work-assignments-section" class="section hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-tasks ml-2 text-blue-500"></i>
+                        أوامر العمل المكلفة
+                    </h2>
+                    
+                    <div class="mb-6">
+                        <button onclick="showWorkAssignmentForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                            <i class="fas fa-plus ml-2"></i>
+                            إضافة أمر عمل جديد
+                        </button>
+                    </div>
+                    
+                    <!-- Work Assignment Form -->
+                    <div id="workAssignmentForm" class="hidden mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-bold text-gray-800 mb-4">بيانات أمر العمل</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">الموظف:</label>
+                                <select id="assignmentEmployee" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">-- اختر موظف --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">عنوان العمل:</label>
+                                <input type="text" id="assignmentTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-700 font-bold mb-2">وصف العمل:</label>
+                                <textarea id="assignmentDescription" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">تاريخ الاستحقاق:</label>
+                                <input type="date" id="assignmentDueDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">الأولوية:</label>
+                                <select id="assignmentPriority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="عادية">عادية</option>
+                                    <option value="متوسطة">متوسطة</option>
+                                    <option value="عالية">عالية</option>
+                                    <option value="عاجلة">عاجلة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex space-x-reverse space-x-2">
+                            <button onclick="saveWorkAssignment()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-save ml-2"></i>
+                                حفظ
+                            </button>
+                            <button onclick="hideWorkAssignmentForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-times ml-2"></i>
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Work Assignments Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-right">الموظف</th>
+                                    <th class="px-4 py-2 text-right">العنوان</th>
+                                    <th class="px-4 py-2 text-right">الوصف</th>
+                                    <th class="px-4 py-2 text-right">تاريخ الاستحقاق</th>
+                                    <th class="px-4 py-2 text-right">الأولوية</th>
+                                    <th class="px-4 py-2 text-right">الحالة</th>
+                                    <th class="px-4 py-2 text-right">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workAssignmentsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-gray-500">لا توجد أوامر عمل</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Permissions Section -->
+            <section id="permissions-section" class="section hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-shield-alt ml-2 text-blue-500"></i>
+                        إدارة الصلاحيات
+                    </h2>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-bold mb-2">اختر الموظف:</label>
+                        <select id="permissionEmployee" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="loadEmployeePermissions()">
+                            <option value="">-- اختر موظف --</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Permissions Form -->
+                    <div id="permissionsForm" class="hidden">
+                        <h3 class="font-bold text-gray-800 mb-4">الصلاحيات المسموحة</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permAttendance" class="ml-2">
+                                    <span class="text-gray-700">الحضور والانصراف</span>
+                                </label>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permEmployees" class="ml-2">
+                                    <span class="text-gray-700">إدارة الموظفين</span>
+                                </label>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permWorkAssignments" class="ml-2">
+                                    <span class="text-gray-700">أوامر العمل</span>
+                                </label>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permPermissions" class="ml-2">
+                                    <span class="text-gray-700">إدارة الصلاحيات</span>
+                                </label>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permSettings" class="ml-2">
+                                    <span class="text-gray-700">الإعدادات</span>
+                                </label>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="permData" class="ml-2">
+                                    <span class="text-gray-700">إدارة البيانات</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="savePermissions()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-save ml-2"></i>
+                                حفظ الصلاحيات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="section hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-cog ml-2 text-blue-500"></i>
+                        الإعدادات
+                    </h2>
+                    
+                    <!-- Manager Settings -->
+                    <div id="managerSettings" class="hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">إعدادات البرنامج</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">اسم البرنامج:</label>
+                                <input type="text" id="programName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">شعار البرنامج:</label>
+                                <input type="file" id="programLogo" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <button onclick="saveProgramSettings()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-save ml-2"></i>
+                                حفظ إعدادات البرنامج
+                            </button>
+                        </div>
+                        
+                        <hr class="my-6">
+                        
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">تغيير بيانات الدخول</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">اسم المستخدم الجديد:</label>
+                                <input type="text" id="newUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">كلمة المرور الجديدة:</label>
+                                <input type="password" id="newPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="changeLoginCredentials()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-key ml-2"></i>
+                                تغيير بيانات الدخول
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Settings -->
+                    <div id="employeeSettings" class="hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">الملف الشخصي</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">الصورة الشخصية:</label>
+                                <input type="file" id="profilePhoto" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <hr class="my-6">
+                        
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">تغيير بيانات الدخول</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">اسم المستخدم الجديد:</label>
+                                <input type="text" id="employeeNewUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">كلمة المرور الجديدة:</label>
+                                <input type="password" id="employeeNewPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="changeEmployeeCredentials()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                <i class="fas fa-key ml-2"></i>
+                                تغيير بيانات الدخول
+                            </button>
                         </div>
                     </div>
                 </div>

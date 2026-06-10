@@ -2,6 +2,12 @@
 let employees = [];
 let attendanceRecords = [];
 let users = [];
+let workAssignments = [];
+let permissions = [];
+let programSettings = {
+    name: 'شركة الحلول التقنية',
+    logo: 'https://via.placeholder.com/50x50/3b82f6/ffffff?text=LOGO'
+};
 let currentUser = null;
 let currentSection = 'attendance';
 
@@ -61,6 +67,9 @@ function loadDataFromStorage() {
         employees = JSON.parse(localStorage.getItem('employees')) || [];
         attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
         users = JSON.parse(localStorage.getItem('users')) || [];
+        workAssignments = JSON.parse(localStorage.getItem('workAssignments')) || [];
+        permissions = JSON.parse(localStorage.getItem('permissions')) || [];
+        programSettings = JSON.parse(localStorage.getItem('programSettings')) || programSettings;
         
         // Create admin if no users exist
         if (users.length === 0) {
@@ -74,6 +83,8 @@ function loadDataFromStorage() {
         employees = [];
         attendanceRecords = [];
         users = [DEFAULT_ADMIN];
+        workAssignments = [];
+        permissions = [];
     }
 }
 
@@ -82,6 +93,9 @@ function saveDataToStorage() {
         localStorage.setItem('employees', JSON.stringify(employees));
         localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
         localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('workAssignments', JSON.stringify(workAssignments));
+        localStorage.setItem('permissions', JSON.stringify(permissions));
+        localStorage.setItem('programSettings', JSON.stringify(programSettings));
         console.log('Data saved to localStorage');
     } catch (error) {
         console.error('Error saving data:', error);
@@ -140,7 +154,42 @@ function showMainApp() {
         document.getElementById('currentUser').textContent = currentUser.employeeName;
     }
     
+    // Apply program settings
+    applyProgramSettings();
+    
+    // Show appropriate settings based on role
+    showSettingsBasedOnRole();
+    
     showSection('attendance');
+}
+
+function applyProgramSettings() {
+    // Update program name and logo
+    const programNameElements = document.querySelectorAll('h1');
+    programNameElements.forEach(el => {
+        if (el.textContent.includes('شركة الحلول التقنية') || el.textContent.includes('نظام الحضور والانصراف')) {
+            el.textContent = programSettings.name;
+        }
+    });
+    
+    // Update logo
+    const logoElements = document.querySelectorAll('img[alt="شعار الشركة"]');
+    logoElements.forEach(el => {
+        el.src = programSettings.logo;
+    });
+}
+
+function showSettingsBasedOnRole() {
+    const managerSettings = document.getElementById('managerSettings');
+    const employeeSettings = document.getElementById('employeeSettings');
+    
+    if (currentUser && currentUser.role === 'admin') {
+        if (managerSettings) managerSettings.classList.remove('hidden');
+        if (employeeSettings) employeeSettings.classList.add('hidden');
+    } else {
+        if (managerSettings) managerSettings.classList.add('hidden');
+        if (employeeSettings) employeeSettings.classList.remove('hidden');
+    }
 }
 
 function showSection(sectionName) {
@@ -158,6 +207,13 @@ function showSection(sectionName) {
         populateEmployeeSelects();
     } else if (sectionName === 'employees') {
         updateEmployeesTable();
+    } else if (sectionName === 'work-assignments') {
+        updateWorkAssignmentsTable();
+        populateAssignmentEmployeeSelect();
+    } else if (sectionName === 'permissions') {
+        populatePermissionEmployeeSelect();
+    } else if (sectionName === 'settings') {
+        loadProgramSettings();
     }
     
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -442,12 +498,321 @@ function updateEmployeesTable() {
     `).join('');
 }
 
+// Work Assignments Functions
+function showWorkAssignmentForm() {
+    document.getElementById('workAssignmentForm').classList.remove('hidden');
+}
+
+function hideWorkAssignmentForm() {
+    document.getElementById('workAssignmentForm').classList.add('hidden');
+    document.getElementById('assignmentTitle').value = '';
+    document.getElementById('assignmentDescription').value = '';
+    document.getElementById('assignmentDueDate').value = '';
+    document.getElementById('assignmentPriority').value = 'عادية';
+}
+
+function populateAssignmentEmployeeSelect() {
+    const select = document.getElementById('assignmentEmployee');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">-- اختر موظف --</option>';
+    
+    employees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = `${employee.name} - ${employee.department}`;
+        select.appendChild(option);
+    });
+}
+
+function saveWorkAssignment() {
+    const employeeId = document.getElementById('assignmentEmployee').value;
+    const title = document.getElementById('assignmentTitle').value.trim();
+    const description = document.getElementById('assignmentDescription').value.trim();
+    const dueDate = document.getElementById('assignmentDueDate').value;
+    const priority = document.getElementById('assignmentPriority').value;
+    
+    if (!employeeId || !title) {
+        showMessage('يرجى ملء جميع الحقول المطلوبة', 'warning');
+        return;
+    }
+    
+    const employee = employees.find(emp => emp.id === employeeId);
+    
+    const assignment = {
+        id: generateId(),
+        employeeId: employeeId,
+        employeeName: employee.name,
+        title: title,
+        description: description,
+        dueDate: dueDate,
+        priority: priority,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+    };
+    
+    workAssignments.push(assignment);
+    saveDataToStorage();
+    updateWorkAssignmentsTable();
+    hideWorkAssignmentForm();
+    showMessage('تم إضافة أمر العمل بنجاح', 'success');
+}
+
+function updateWorkAssignmentsTable() {
+    const tbody = document.getElementById('workAssignmentsTableBody');
+    
+    if (workAssignments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">لا توجد أوامر عمل</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = workAssignments.map(assignment => {
+        const employee = employees.find(emp => emp.id === assignment.employeeId);
+        const employeeName = employee ? employee.name : 'غير معروف';
+        
+        let statusBadge = '';
+        switch (assignment.status) {
+            case 'pending':
+                statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">قيد الانتظار</span>';
+                break;
+            case 'in_progress':
+                statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">قيد التنفيذ</span>';
+                break;
+            case 'completed':
+                statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">مكتمل</span>';
+                break;
+            default:
+                statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">غير معروف</span>';
+        }
+        
+        let priorityBadge = '';
+        switch (assignment.priority) {
+            case 'عادية':
+                priorityBadge = '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">عادية</span>';
+                break;
+            case 'متوسطة':
+                priorityBadge = '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">متوسطة</span>';
+                break;
+            case 'عالية':
+                priorityBadge = '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">عالية</span>';
+                break;
+            case 'عاجلة':
+                priorityBadge = '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">عاجلة</span>';
+                break;
+        }
+        
+        return `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">${employeeName}</td>
+                <td class="px-4 py-2">${assignment.title}</td>
+                <td class="px-4 py-2">${assignment.description || '-'}</td>
+                <td class="px-4 py-2">${assignment.dueDate ? formatDate(assignment.dueDate) : '-'}</td>
+                <td class="px-4 py-2">${priorityBadge}</td>
+                <td class="px-4 py-2">${statusBadge}</td>
+                <td class="px-4 py-2">
+                    <button onclick="markAssignmentCompleted('${assignment.id}')" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm ml-1">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="deleteWorkAssignment('${assignment.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function markAssignmentCompleted(id) {
+    const assignment = workAssignments.find(a => a.id === id);
+    if (assignment) {
+        assignment.status = 'completed';
+        assignment.completedAt = new Date().toISOString();
+        saveDataToStorage();
+        updateWorkAssignmentsTable();
+        showMessage('تم تحديث حالة أمر العمل', 'success');
+    }
+}
+
+function deleteWorkAssignment(id) {
+    if (confirm('هل أنت متأكد من حذف هذا الأمر؟')) {
+        workAssignments = workAssignments.filter(a => a.id !== id);
+        saveDataToStorage();
+        updateWorkAssignmentsTable();
+        showMessage('تم حذف أمر العمل', 'success');
+    }
+}
+
+// Permissions Functions
+function populatePermissionEmployeeSelect() {
+    const select = document.getElementById('permissionEmployee');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">-- اختر موظف --</option>';
+    
+    employees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        option.textContent = `${employee.name} - ${employee.department}`;
+        select.appendChild(option);
+    });
+}
+
+function loadEmployeePermissions() {
+    const employeeId = document.getElementById('permissionEmployee').value;
+    const permissionsForm = document.getElementById('permissionsForm');
+    
+    if (!employeeId) {
+        permissionsForm.classList.add('hidden');
+        return;
+    }
+    
+    permissionsForm.classList.remove('hidden');
+    
+    // Get existing permissions or create default
+    let employeePermissions = permissions.find(p => p.employeeId === employeeId);
+    if (!employeePermissions) {
+        employeePermissions = {
+            employeeId: employeeId,
+            attendance: true,
+            employees: false,
+            workAssignments: true,
+            permissions: false,
+            settings: true,
+            data: false
+        };
+    }
+    
+    // Update checkboxes
+    document.getElementById('permAttendance').checked = employeePermissions.attendance;
+    document.getElementById('permEmployees').checked = employeePermissions.employees;
+    document.getElementById('permWorkAssignments').checked = employeePermissions.workAssignments;
+    document.getElementById('permPermissions').checked = employeePermissions.permissions;
+    document.getElementById('permSettings').checked = employeePermissions.settings;
+    document.getElementById('permData').checked = employeePermissions.data;
+}
+
+function savePermissions() {
+    const employeeId = document.getElementById('permissionEmployee').value;
+    
+    if (!employeeId) {
+        showMessage('يرجى اختيار موظف', 'warning');
+        return;
+    }
+    
+    const employeePermissions = {
+        employeeId: employeeId,
+        attendance: document.getElementById('permAttendance').checked,
+        employees: document.getElementById('permEmployees').checked,
+        workAssignments: document.getElementById('permWorkAssignments').checked,
+        permissions: document.getElementById('permPermissions').checked,
+        settings: document.getElementById('permSettings').checked,
+        data: document.getElementById('permData').checked
+    };
+    
+    // Remove existing permissions for this employee
+    permissions = permissions.filter(p => p.employeeId !== employeeId);
+    
+    // Add new permissions
+    permissions.push(employeePermissions);
+    
+    saveDataToStorage();
+    showMessage('تم حفظ الصلاحيات بنجاح', 'success');
+}
+
+// Settings Functions
+function loadProgramSettings() {
+    document.getElementById('programName').value = programSettings.name;
+}
+
+function saveProgramSettings() {
+    const name = document.getElementById('programName').value.trim();
+    const logoInput = document.getElementById('programLogo');
+    
+    if (name) {
+        programSettings.name = name;
+    }
+    
+    if (logoInput.files && logoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            programSettings.logo = e.target.result;
+            saveDataToStorage();
+            applyProgramSettings();
+            showMessage('تم حفظ إعدادات البرنامج بنجاح', 'success');
+        };
+        reader.readAsDataURL(logoInput.files[0]);
+    } else {
+        saveDataToStorage();
+        applyProgramSettings();
+        showMessage('تم حفظ إعدادات البرنامج بنجاح', 'success');
+    }
+}
+
+function changeLoginCredentials() {
+    const newUsername = document.getElementById('newUsername').value.trim();
+    const newPassword = document.getElementById('newPassword').value;
+    
+    if (!newUsername || !newPassword) {
+        showMessage('يرجى ملء جميع الحقول', 'warning');
+        return;
+    }
+    
+    if (currentUser && currentUser.role === 'admin') {
+        currentUser.username = newUsername;
+        currentUser.password = newPassword;
+        
+        // Update in users array
+        const userIndex = users.findIndex(u => u.id === currentUser.id);
+        if (userIndex !== -1) {
+            users[userIndex] = currentUser;
+        }
+        
+        saveDataToStorage();
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        showMessage('تم تغيير بيانات الدخول بنجاح', 'success');
+        
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+    }
+}
+
+function changeEmployeeCredentials() {
+    const newUsername = document.getElementById('employeeNewUsername').value.trim();
+    const newPassword = document.getElementById('employeeNewPassword').value;
+    
+    if (!newUsername || !newPassword) {
+        showMessage('يرجى ملء جميع الحقول', 'warning');
+        return;
+    }
+    
+    if (currentUser) {
+        currentUser.username = newUsername;
+        currentUser.password = newPassword;
+        
+        // Update in users array
+        const userIndex = users.findIndex(u => u.id === currentUser.id);
+        if (userIndex !== -1) {
+            users[userIndex] = currentUser;
+        }
+        
+        saveDataToStorage();
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        showMessage('تم تغيير بيانات الدخول بنجاح', 'success');
+        
+        document.getElementById('employeeNewUsername').value = '';
+        document.getElementById('employeeNewPassword').value = '';
+    }
+}
+
 // Data Management Functions
 function exportData() {
     const data = {
         employees: employees,
         attendanceRecords: attendanceRecords,
         users: users,
+        workAssignments: workAssignments,
+        permissions: permissions,
+        programSettings: programSettings,
         exportDate: new Date().toISOString()
     };
     
@@ -481,11 +846,15 @@ function importData() {
             if (data.employees) employees = data.employees;
             if (data.attendanceRecords) attendanceRecords = data.attendanceRecords;
             if (data.users) users = data.users;
+            if (data.workAssignments) workAssignments = data.workAssignments;
+            if (data.permissions) permissions = data.permissions;
+            if (data.programSettings) programSettings = data.programSettings;
             
             saveDataToStorage();
             updateAttendanceTable();
             updateEmployeesTable();
             populateEmployeeSelects();
+            applyProgramSettings();
             
             showMessage('تم استيراد البيانات بنجاح', 'success');
         } catch (error) {
@@ -502,11 +871,18 @@ function clearAllData() {
         employees = [];
         attendanceRecords = [];
         users = [DEFAULT_ADMIN];
+        workAssignments = [];
+        permissions = [];
+        programSettings = {
+            name: 'شركة الحلول التقنية',
+            logo: 'https://via.placeholder.com/50x50/3b82f6/ffffff?text=LOGO'
+        };
         
         saveDataToStorage();
         updateAttendanceTable();
         updateEmployeesTable();
         populateEmployeeSelects();
+        applyProgramSettings();
         
         showMessage('تم مسح جميع البيانات', 'success');
     }
